@@ -33,8 +33,50 @@ UPDATE walkable_grid w
 	SET praca_ou_parque = 0
 	WHERE w.regiao_estudo_id is not null
 	AND w.praca_ou_parque is null
-	
+
 -- Postes de luz:
--- Identifica quantos postes existem num raio de 25 metros da célula
--- Por que 25 metros? Pois, como o raio de iluminação de um poste pode variar de 15 a 30 metros, 
--- um poste a 25 metros distante certamente ilumina a maior parte da célula.
+-- Identifica quantos postes existem num raio de 15 metros da célula
+-- Por que 15 metros? Pois, como o raio de iluminação de um poste pode variar de 15 a 30 metros, 
+-- um poste em um raio de 15 metros da célula garantidamente ilumina ao menos uma parte dela.
+UPDATE walkable_grid wg
+	SET unidades_iluminacao = subquery.unidades_iluminacao
+	FROM (
+		SELECT w.id, COUNT(*) AS unidades_iluminacao
+		FROM walkable_grid w, unidade_iluminacao_publica u
+		WHERE w.regiao_estudo_id IS NOT NULL
+		AND ST_Intersects(w.geom, ST_Buffer(u.geom, 15))
+		GROUP BY w.id
+	) AS subquery
+	WHERE wg.id = subquery.id;
+
+-- #TODO: rodar novamente, possivelmente em parcelas menores
+-- Foi necessário interromper a execução após 5h38m e a query ainda não estava completa.
+
+-- Estabelecimentos econômicos:
+-- Identifica quantos pontos de atividade econômica existem num raio de 25 metros da célula. Essa distância foi definida arbitrariamente.
+-- O objetivo é destacar os ambientes de maior circulação de pessoas devido à atividade econômica no local.
+UPDATE walkable_grid wg
+SET atividades_economicas = subquery.atividades_economicas
+FROM (
+    SELECT w.id, COUNT(*) AS atividades_economicas
+    FROM walkable_grid w, atividade_economica a
+    WHERE w.regiao_estudo_id IS NOT NULL
+    AND ST_Intersects(w.geom, ST_Buffer(a.geom, 25))
+    GROUP BY w.id
+) AS subquery
+WHERE wg.id = subquery.id;
+
+
+
+-- FIM: Verificar os resultados calculados para cada célula
+SELECT w.id,
+		w.valid,
+		w.regiao_estudo_id, 
+		w.media_declividade, 
+		w.praca_ou_parque, 
+		w.unidades_iluminacao, 
+		w.atividades_economicas, 
+		w.caminhabilidade, 
+		w.geom
+	FROM walkable_grid
+	WHERE regiao_estudo_is IS NOT NULL
