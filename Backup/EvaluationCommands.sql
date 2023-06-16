@@ -1,5 +1,8 @@
 -- Aqui serão adicionados os comandos utilizados para calcular os parâmetros relevantes para cada variável de interesse entre as célculas da região de estudo
 
+-- Para reproduzir os próximos passos, é essencial a criação de spatial indexes para as células geométricas
+-- Sem estes, as operações abaixo podem demorar várias horas.
+
 -- A coluna caminhabilidade é a principal coluna para a avaliação, armazenando uma nota de 0 a 1 para a caminhabilidade
 -- Essa nota será calculada por um serviço externo com base nas informações das outras colunas.
 ALTER TABLE walkable_grid
@@ -49,9 +52,6 @@ UPDATE walkable_grid wg
 	) AS subquery
 	WHERE wg.id = subquery.id;
 
--- #TODO: rodar novamente, possivelmente em parcelas menores
--- Foi necessário interromper a execução após 5h38m e a query ainda não estava completa.
-
 -- Estabelecimentos econômicos:
 -- Identifica quantos pontos de atividade econômica existem num raio de 25 metros da célula. Essa distância foi definida arbitrariamente.
 -- O objetivo é destacar os ambientes de maior circulação de pessoas devido à atividade econômica no local.
@@ -78,5 +78,5 @@ SELECT w.id,
 		w.atividades_economicas, 
 		w.caminhabilidade, 
 		w.geom
-	FROM walkable_grid
-	WHERE regiao_estudo_is IS NOT NULL
+	FROM walkable_grid w
+	WHERE regiao_estudo_id IS NOT NULL
