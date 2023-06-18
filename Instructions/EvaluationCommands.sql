@@ -1,7 +1,7 @@
 -- Aqui serão adicionados os comandos utilizados para calcular os parâmetros relevantes para cada variável de interesse entre as célculas da região de estudo
 
 -- Para reproduzir os próximos passos, é essencial a criação de spatial indexes para as células geométricas
--- Sem estes, as operações abaixo podem demorar várias horas.
+-- Sem estes, as operações abaixo podem levar várias horas.
 
 -- A coluna caminhabilidade é a principal coluna para a avaliação, armazenando uma nota de 0 a 1 para a caminhabilidade
 -- Essa nota será calculada por um serviço externo com base nas informações das outras colunas.
