@@ -33,4 +33,15 @@ Para garantir que as extensões necessárias estejam corretamente instaladas, ex
 select version(); -- Versão do servidor PostgreSQL
 select postgis_version();
 select pgr_version();
-````
+```
+
+# Visualizando os resultados no QGIS
+Para visualizar no mapa as conclusões dos cálculos da métrica de caminhabilidade, é interessante adicionar um estilo de gradiente de cores para compreender quais são as melhores e piores áreas nesse quesito. <br>
+
+Para fazer isso, siga os passos:
+- Selecione a tabela 'walkable_grid' como um layer
+- Filtre os resultados do layer para exibir somente as células em que "'regiao_estudo_id' IS NOT NULL"
+- Vá em Estilos -> Editar símbolo -> Preenchimento Simples. Ao lado de 'Cor do Preenchimento', clique em Editar e preencha o código a seguir:
+    - ```
+        color_rgb(255 * (1 - "caminhabilidade"), 255 * "caminhabilidade", 0)
+- Agora, as células com melhores índices de caminhabilidade devem estar mais verdes, enquanto as piores estão mais avermelhadas.
