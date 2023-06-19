@@ -15,7 +15,7 @@ UPDATE walkable_grid w
 	FROM (
 		SELECT w.id, COALESCE(AVG(d.declivida0), 0) AS media_declividade
 		FROM walkable_grid w
-		LEFT JOIN declividade_trecho_lograd d ON ST_Intersects(w.geom, d.geom)
+		LEFT JOIN declividade_trecho_lograd d ON ST_Intersects(ST_Buffer(w.geom, 30), d.geom)
 		WHERE w.regiao_estudo_id IS NOT NULL
 		GROUP BY w.id
 	) AS subquery
