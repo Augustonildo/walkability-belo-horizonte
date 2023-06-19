@@ -1,4 +1,5 @@
-﻿using Npgsql;
+﻿using Dapper;
+using Npgsql;
 using WalkabilityMetrics.Models;
 
 namespace WalkabilityMetrics.Repositories
@@ -59,24 +60,12 @@ namespace WalkabilityMetrics.Repositories
             using NpgsqlConnection connection = new(_connectionString);
             connection.Open();
 
-            using NpgsqlCommand command = new();
-            command.Connection = connection;
+            string updateQuery = @"
+                    UPDATE walkable_grid 
+                    SET caminhabilidade = @Caminhabilidade 
+                    WHERE id = @Id";
 
-            command.CommandText = @"
-                UPDATE walkable_grid 
-                    SET caminhabilidade = @caminhabilidade 
-                    WHERE id = @id";
-            command.Parameters.Add(new NpgsqlParameter("@caminhabilidade", NpgsqlTypes.NpgsqlDbType.Double));
-            command.Parameters.Add(new NpgsqlParameter("@id", NpgsqlTypes.NpgsqlDbType.Integer));
-
-            foreach (WalkabilityResult update in walkabilityResults)
-            {
-                command.Parameters["@caminhabilidade"].Value = update.Caminhabilidade;
-                command.Parameters["@id"].Value = update.Id;
-                command.ExecuteNonQuery();
-            }
-            return 0;
+            return connection.Execute(updateQuery, walkabilityResults);
         }
     }
-
 }
