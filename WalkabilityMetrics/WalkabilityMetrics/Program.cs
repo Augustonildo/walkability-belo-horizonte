@@ -42,7 +42,9 @@ namespace WalkabilityMetrics
                     WeightsConstants.PesoDeclividade * CalcularDeclividade(cell.MediaDeclividade) +
                     WeightsConstants.PesoPracaOuParque * CalcularPracaOuParque(cell.PracaOuParque) +
                     WeightsConstants.PesoIluminacao * CalcularIluminacao(cell.UnidadesIluminacao) +
-                    WeightsConstants.PesoAtividadesEconomicas * CalcularAtividadesEconomicas(cell.AtividadesEconomicas);
+                    WeightsConstants.PesoAtividadesEconomicas * CalcularAtividadesEconomicas(cell.AtividadesEconomicas) +
+                    WeightsConstants.PesoMeioFio * CalcularMeioFio(cell.MeioFio) +
+                    WeightsConstants.PesoPavimentacao * CalcularPavimentacao(cell.Pavimentacao);
         }
 
         static double CalcularDeclividade(double declividade)
@@ -80,6 +82,16 @@ namespace WalkabilityMetrics
             if (atividadesEconomicas == 2) return 0.7;
             if (atividadesEconomicas == 3) return 0.8;
             return 1;
+        }
+
+        static int CalcularMeioFio(bool meioFio)
+        {
+            return meioFio ? 1 : 0;
+        }
+
+        static int CalcularPavimentacao(bool pavimentacao)
+        {
+            return pavimentacao ? 1 : 0;
         }
     }
 }

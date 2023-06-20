@@ -67,6 +67,39 @@ FROM (
 WHERE wg.id = subquery.id;
 
 
+-- Meio-fio:
+-- Identifica se a célula está em uma rua que possa meio-fio válido.
+UPDATE walkable_grid w
+	SET meio_fio = 1
+	WHERE w.regiao_estudo_id is not null
+		AND EXISTS(
+			SELECT 1
+				FROM meio_fio m
+				WHERE ST_Intersects(ST_Buffer(w.geom, 30), m.geom)
+				AND m.ind_mf = 'S'
+		);
+
+UPDATE walkable_grid w
+	SET meio_fio = 0
+	WHERE w.regiao_estudo_id is not null
+	AND w.meio_fio is null
+
+-- Pavimento:
+-- Query muito similar à do meio-fio, porém verificando o pavimento.
+UPDATE walkable_grid w
+	SET pavimentacao = 1
+	WHERE w.regiao_estudo_id is not null
+		AND EXISTS(
+			SELECT 1
+				FROM pavimentacao p
+				WHERE ST_Intersects(ST_Buffer(w.geom, 30), p.geom)
+				AND p.ind_pav = 'Sim'
+		);
+
+UPDATE walkable_grid w
+	SET pavimentacao = 0
+	WHERE w.regiao_estudo_id is not null
+	AND w.pavimentacao is null
 
 -- FIM: Verificar os resultados calculados para cada célula
 SELECT w.id,
@@ -75,7 +108,9 @@ SELECT w.id,
 		w.media_declividade, 
 		w.praca_ou_parque, 
 		w.unidades_iluminacao, 
-		w.atividades_economicas, 
+		w.atividades_economicas,
+		w.meio_fio,
+		w.pavimentacao, 
 		w.caminhabilidade, 
 		w.geom
 	FROM walkable_grid w
