@@ -45,3 +45,5 @@ Para fazer isso, siga os passos:
     - ```
         color_rgb(255 * (1 - "caminhabilidade"), 255 * "caminhabilidade", 0)
 - Agora, as células com melhores índices de caminhabilidade devem estar mais verdes, enquanto as piores estão mais avermelhadas.
+  
+Outra sugestão relevante é remover os traços ao redor das células, para permitir a visualização dos dados mesmo com um "zoom-out" grande. Com a borda colorida das células, ao remover o zoom as células se tornam somente uma grande mancha preta.
