@@ -15,15 +15,15 @@ ADD COLUMN label_caminhabilidade INTEGER;
 -- tabelaremos somente as células com razoavelmente maior certeza no resultado encontrado.
 
 -- A primeira atribuição será de label para células "ruins". 
--- Empiricamente, percebemos que as células com caminhabilidade inferior ou igual a 0.4 notavelmente não eram ideias.
+-- Percebemos analisando o mapa que as células com caminhabilidade inferior a 0.4 notavelmente não eram ideais.
 -- Portanto, vamos atribuir 0 para label_caminhabilidade destas células
 UPDATE walkable_grid w
 	SET label_caminhabilidade = 0
 	WHERE w.regiao_estudo_id is not null
-		AND w.caminhabilidade <= 0.4
+		AND w.caminhabilidade < 0.4
 
 -- De um total de 54762 células do estudo,
--- já atribuimos a 4090 células uma label.
+-- já atribuimos a 2528 células uma label.
 
 -- Também empiricamente, usaremos as células com caminhabilidade >= 0.88 como controle positivo.
 -- Gostaria que esse controle fosse ainda superior, porém existe uma pequeníssima quantidade de células acima desse índice.
@@ -34,19 +34,30 @@ UPDATE walkable_grid w
 
 -- Outra adição de dados de controle positivo que será não só empirica como também arbitrária é a adição da região da praça da liberdade.
 -- Essa foi uma das divergências mais gritantes entre o algoritmo e a expectativa.
--- Abaixo, atualizaremos todas as células que tocam especificamente a praça da liberdade.
+-- Abaixo, atualizaremos todas as células próximas à praça da liberdade.
 UPDATE walkable_grid w
 	SET label_caminhabilidade = 1
 	WHERE w.regiao_estudo_id is not null
 		AND EXISTS(SELECT 1
 				FROM praca p
-				WHERE ST_Intersects(w.geom, p.geom)
+				WHERE ST_Intersects(w.geom, ST_Buffer(p.geom, 10))
 				AND p.id_prc = 996);
 
+-- Em contra partida, a região do parque municipal José Maria Alkimim, ao lado do shopping Ponteio, 
+-- não parece ter estrutura ideal para trânsito de pessoas, embora existam algumas trilhas desenhadas pela circulação de transeuntes.
+-- Pela falta de infraestrutura, atualizaremos abaixo suas células como não ideais.
+UPDATE walkable_grid w
+	SET label_caminhabilidade = 0
+	WHERE w.regiao_estudo_id is not null
+		AND EXISTS(SELECT 1
+				FROM parques_municipais pm
+				WHERE ST_Intersects(w.geom, ST_Buffer(pm.geom, 10))
+				AND pm.id_unidade_fpmzb = 345);
+
 -- Ao fim, temos as seguintes quantidades de dados de teste para o algoritmo:
-	-- Positivo: 3002
-	-- Negativo: 4090
-	-- Sem label: 47.670
+	-- Positivo: 3268
+	-- Negativo: 4070
+	-- Sem label: 47.424
 
 -- FIM: Consulta utilizada para gerar o arquivo csv
 SELECT w.id,
