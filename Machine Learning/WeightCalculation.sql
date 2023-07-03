@@ -50,6 +50,7 @@ UPDATE walkable_grid w
 
 -- FIM: Consulta utilizada para gerar o arquivo csv
 SELECT w.id,
+		w.regiao_estudo_id as regiao,
 		w.media_declividade, 
 		w.praca_ou_parque, 
 		COALESCE(w.unidades_iluminacao, 0) as unidades_iluminacao,
