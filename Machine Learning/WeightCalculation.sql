@@ -9,6 +9,9 @@
 ALTER TABLE walkable_grid
 ADD COLUMN label_caminhabilidade INTEGER;
 
+CREATE INDEX walkable_grid_label_caminhabilidade 
+	ON geodata.walkable_grid USING btree(label_caminhabilidade)
+
 -- Em seguida, precisamos assinalar a algumas das células os valores para sua label.
 -- NÃO atribuiremos label para todas as células. 
 -- Como o motivo para o rebalanceamento do peso é a desconfiança na exatidão do algoritmo,
@@ -71,3 +74,21 @@ SELECT w.id,
 		w.label_caminhabilidade as caminhavel
 	FROM walkable_grid w
 	WHERE regiao_estudo_id IS NOT NULL
+
+--
+--
+-- Armazenando os resultados!
+--
+--
+
+-- Após realizar as predições utilizando os algoritmos de aprendizado de máquina
+-- o resultado obtido será um arquivo .csv com as predições de caminhabilidade para cada célula
+-- para esse caso, criaremos uma coluna "predicao" e armazenaremos nela os valores encontrados.
+ALTER TABLE walkable_grid
+ADD COLUMN predicao INTEGER;
+
+CREATE INDEX walkable_grid_predicao
+	ON geodata.walkable_grid USING btree(predicao)
+
+-- Após esse ponto, devem ser importados os arquivos em resultado.csv para a tabela walkable_grid
+-- atualizando os valores da coluna predicao para as linhas que derem match em id
