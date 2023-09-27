@@ -101,6 +101,53 @@ UPDATE walkable_grid w
 	WHERE w.regiao_estudo_id is not null
 	AND w.pavimentacao is null
 
+
+-- Classificação viária:
+-- Limpando os dados de largura da via
+ALTER TABLE classificacao_viaria
+ADD COLUMN largura DECIMAL(10, 2);
+
+UPDATE classificacao_viaria
+SET largura = 
+  CASE			-- As definições a seguir são arbitrárias e certamente não correspondem 100% com a realidade
+    WHEN tipo_largu = 'A' THEN 7.5	-- "LARGURA DA VIA < 10 m"
+    WHEN tipo_largu = 'B' THEN 12.5	-- "10m <= LARGURA DA VIA < 15m"
+    WHEN tipo_largu = 'C' THEN 17.5	-- "LARGURA DA VIA >= 15m"
+  END;	
+
+-- Assinalando a classificação viária para cada célula baseando-se na largura de cada via
+-- Caso uma célula se encontre em mais de uma via, será escolhida a circulação mais "intensa"
+-- Caso uma célula não se conecte com nenhuma classificação viária, terá valor nulo
+WITH max_classifica AS (
+	SELECT wg.id, MAX(
+					CASE
+						WHEN classifica = 'LIGACAO REGIONAL' THEN 6
+						WHEN classifica = 'ARTERIAL' THEN 5
+						WHEN classifica = 'COLETORA' THEN 4
+						WHEN classifica = 'LOCAL' THEN 3
+						WHEN classifica = 'MISTA' THEN 2
+						WHEN classifica = 'VIA DE PEDESTRES' THEN 1
+						ELSE 0
+					END) classi
+	FROM classificacao_viaria c
+	JOIN walkable_grid wg
+		ON ST_Intersects(ST_Buffer(c.geom, c.largura), wg.geom)
+	GROUP BY wg.id
+)
+UPDATE walkable_grid w
+SET class_viaria = (CASE
+        WHEN classi = 6 THEN 'LIGACAO REGIONAL'
+        WHEN classi = 5 THEN 'ARTERIAL'
+        WHEN classi = 4 THEN 'COLETORA'
+        WHEN classi = 3 THEN 'LOCAL'
+        WHEN classi = 2 THEN 'MISTA'
+        WHEN classi = 1 THEN 'VIA DE PEDESTRES'
+        ELSE NULL
+    END)
+FROM max_classifica mc
+WHERE w.id = mc.id
+
+
 -- FIM: Verificar os resultados calculados para cada célula
 SELECT w.id,
 		w.valid,
@@ -111,7 +158,8 @@ SELECT w.id,
 		w.atividades_economicas,
 		w.meio_fio,
 		w.pavimentacao, 
-		w.caminhabilidade, 
+		w.caminhabilidade,
+		w.class_viaria, 
 		w.geom
 	FROM walkable_grid w
 	WHERE regiao_estudo_id IS NOT NULL
