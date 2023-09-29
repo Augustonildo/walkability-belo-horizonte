@@ -16,7 +16,6 @@ UPDATE walkable_grid w
 		SELECT w.id, COALESCE(AVG(d.declivida0), 0) AS media_declividade
 		FROM walkable_grid w
 		LEFT JOIN declividade_trecho_lograd d ON ST_Intersects(ST_Buffer(w.geom, 30), d.geom)
-		WHERE w.regiao_estudo_id IS NOT NULL
 		GROUP BY w.id
 	) AS subquery
 	WHERE w.id = subquery.id;
@@ -25,17 +24,23 @@ UPDATE walkable_grid w
 -- Identifica se a célula toca em uma praça ou um parque (1) ou se não toca em nenhum (0).
 UPDATE walkable_grid w
 	SET praca_ou_parque = 1
-	WHERE w.regiao_estudo_id is not null
-		AND EXISTS(
+		WHERE EXISTS(
 			SELECT 1
-				FROM praca p, parques_municipais pm
-				WHERE ST_Intersects(w.geom, p.geom) OR ST_Intersects(w.geom, pm.geom)
+				FROM parques_municipais pm
+				WHERE ST_Intersects(w.geom, pm.geom)
+		);
+
+UPDATE walkable_grid w
+	SET praca_ou_parque = 1
+		WHERE EXISTS(
+			SELECT 1
+				FROM praca p
+				WHERE ST_Intersects(w.geom, p.geom)
 		);
 
 UPDATE walkable_grid w
 	SET praca_ou_parque = 0
-	WHERE w.regiao_estudo_id is not null
-	AND w.praca_ou_parque is null
+	WHERE w.praca_ou_parque is null
 
 -- Postes de luz:
 -- Identifica quantos postes existem num raio de 15 metros da célula
@@ -46,8 +51,7 @@ UPDATE walkable_grid wg
 	FROM (
 		SELECT w.id, COUNT(*) AS unidades_iluminacao
 		FROM walkable_grid w, unidade_iluminacao_publica u
-		WHERE w.regiao_estudo_id IS NOT NULL
-		AND ST_Intersects(w.geom, ST_Buffer(u.geom, 15))
+		WHERE ST_Intersects(w.geom, ST_Buffer(u.geom, 15))
 		GROUP BY w.id
 	) AS subquery
 	WHERE wg.id = subquery.id;
@@ -60,8 +64,7 @@ SET atividades_economicas = subquery.atividades_economicas
 FROM (
     SELECT w.id, COUNT(*) AS atividades_economicas
     FROM walkable_grid w, atividade_economica a
-    WHERE w.regiao_estudo_id IS NOT NULL
-    AND ST_Intersects(w.geom, ST_Buffer(a.geom, 25))
+    WHERE ST_Intersects(w.geom, ST_Buffer(a.geom, 25))
     GROUP BY w.id
 ) AS subquery
 WHERE wg.id = subquery.id;
@@ -71,8 +74,7 @@ WHERE wg.id = subquery.id;
 -- Identifica se a célula está em uma rua que possa meio-fio válido.
 UPDATE walkable_grid w
 	SET meio_fio = 1
-	WHERE w.regiao_estudo_id is not null
-		AND EXISTS(
+	WHERE EXISTS(
 			SELECT 1
 				FROM meio_fio m
 				WHERE ST_Intersects(ST_Buffer(w.geom, 30), m.geom)
@@ -81,15 +83,13 @@ UPDATE walkable_grid w
 
 UPDATE walkable_grid w
 	SET meio_fio = 0
-	WHERE w.regiao_estudo_id is not null
-	AND w.meio_fio is null
+	WHERE w.meio_fio is null
 
 -- Pavimento:
 -- Query muito similar à do meio-fio, porém verificando o pavimento.
 UPDATE walkable_grid w
 	SET pavimentacao = 1
-	WHERE w.regiao_estudo_id is not null
-		AND EXISTS(
+	WHERE EXISTS(
 			SELECT 1
 				FROM pavimentacao p
 				WHERE ST_Intersects(ST_Buffer(w.geom, 30), p.geom)
@@ -98,8 +98,7 @@ UPDATE walkable_grid w
 
 UPDATE walkable_grid w
 	SET pavimentacao = 0
-	WHERE w.regiao_estudo_id is not null
-	AND w.pavimentacao is null
+	WHERE w.pavimentacao is null
 
 
 -- Classificação viária:
@@ -151,15 +150,13 @@ WHERE w.id = mc.id
 -- FIM: Verificar os resultados calculados para cada célula
 SELECT w.id,
 		w.valid,
-		w.regiao_estudo_id, 
 		w.media_declividade, 
 		w.praca_ou_parque, 
 		w.unidades_iluminacao, 
 		w.atividades_economicas,
 		w.meio_fio,
 		w.pavimentacao, 
-		w.caminhabilidade,
 		w.class_viaria, 
+		w.caminhabilidade,
 		w.geom
 	FROM walkable_grid w
-	WHERE regiao_estudo_id IS NOT NULL
