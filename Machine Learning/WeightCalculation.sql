@@ -22,26 +22,22 @@ CREATE INDEX walkable_grid_label_caminhabilidade
 -- Portanto, vamos atribuir 0 para label_caminhabilidade destas células
 UPDATE walkable_grid w
 	SET label_caminhabilidade = 0
-	WHERE w.regiao_estudo_id is not null
-		AND w.caminhabilidade < 0.4
+	WHERE w.caminhabilidade < 0.4
 
--- De um total de 54762 células do estudo,
--- já atribuimos a 2528 células uma label.
+-- De um total de 4.068.581 células do estudo,
+-- já atribuimos a 79.721 células uma label.
 
 -- Também empiricamente, usaremos as células com caminhabilidade >= 0.88 como controle positivo.
--- Gostaria que esse controle fosse ainda superior, porém existe uma pequeníssima quantidade de células acima desse índice.
 UPDATE walkable_grid w
 	SET label_caminhabilidade = 1
-	WHERE w.regiao_estudo_id is not null
-		AND w.caminhabilidade >= 0.88
+	WHERE w.caminhabilidade >= 0.88
 
 -- Outra adição de dados de controle positivo que será não só empirica como também arbitrária é a adição da região da praça da liberdade.
 -- Essa foi uma das divergências mais gritantes entre o algoritmo e a expectativa.
 -- Abaixo, atualizaremos todas as células próximas à praça da liberdade.
 UPDATE walkable_grid w
 	SET label_caminhabilidade = 1
-	WHERE w.regiao_estudo_id is not null
-		AND EXISTS(SELECT 1
+	WHERE EXISTS(SELECT 1
 				FROM praca p
 				WHERE ST_Intersects(w.geom, ST_Buffer(p.geom, 10))
 				AND p.id_prc = 996);
@@ -51,29 +47,48 @@ UPDATE walkable_grid w
 -- Pela falta de infraestrutura, atualizaremos abaixo suas células como não ideais.
 UPDATE walkable_grid w
 	SET label_caminhabilidade = 0
-	WHERE w.regiao_estudo_id is not null
-		AND EXISTS(SELECT 1
+	WHERE EXISTS(SELECT 1
 				FROM parques_municipais pm
 				WHERE ST_Intersects(w.geom, ST_Buffer(pm.geom, 10))
 				AND pm.id_unidade_fpmzb = 345);
 
+-- Outra região obviamente não ideal para caminhada é um espaço com alta circulação de veículos de carga pesada e em alta velocidade
+-- A caminhada no espaço dos veículos no Anel Rodoviária é completamente desaconselhada.
+-- todo: [optimize or remove]
+UPDATE walkable_grid w
+	SET label_caminhabilidade = 0
+	WHERE EXISTS(SELECT 1
+				FROM classificacao_viaria cv
+				WHERE ST_Intersects(w.geom, ST_Buffer(cv.geom, cv.largura))
+				AND cv.no_log = 'ANEL RODOVIARIO CELSO MELLO AZEVEDO');
+
+
+-- Adicionando um controle positivo, temos a pista de cooper da rua José de Patrocínio Pontes, próxima ao Parque das Mangabeiras. 
+-- É considerada em diversas fontes como um dos melhores locais para se caminhar em belo horizonte
+-- Abaixo será selecionado somente o trecho que possui a pista de cooper.
+UPDATE walkable_grid w
+	SET label_caminhabilidade = 1
+	WHERE EXISTS(SELECT 1
+				FROM classificacao_viaria cv
+				WHERE ST_Intersects(w.geom, ST_Buffer(cv.geom, 5))
+				AND cv.id IN (36638, 46988));
+
 -- Ao fim, temos as seguintes quantidades de dados de teste para o algoritmo:
-	-- Positivo: 3268
-	-- Negativo: 4070
-	-- Sem label: 47.424
+	-- Positivo: 18295
+	-- Negativo: 85152
+	-- Sem label: 3.965.134
 
 -- FIM: Consulta utilizada para gerar o arquivo csv
 SELECT w.id,
-		w.regiao_estudo_id as regiao,
 		w.media_declividade, 
 		w.praca_ou_parque, 
 		COALESCE(w.unidades_iluminacao, 0) as unidades_iluminacao,
 		COALESCE(w.atividades_economicas, 0) as atividades_economicas,
 		w.meio_fio,
 		w.pavimentacao, 
+		w.class_viaria, 
 		w.label_caminhabilidade as caminhavel
 	FROM walkable_grid w
-	WHERE regiao_estudo_id IS NOT NULL
 
 --
 --
