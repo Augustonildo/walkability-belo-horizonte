@@ -44,7 +44,8 @@ namespace WalkabilityMetrics
                     WeightsConstants.PesoIluminacao * CalcularIluminacao(cell.UnidadesIluminacao) +
                     WeightsConstants.PesoAtividadesEconomicas * CalcularAtividadesEconomicas(cell.AtividadesEconomicas) +
                     WeightsConstants.PesoMeioFio * CalcularMeioFio(cell.MeioFio) +
-                    WeightsConstants.PesoPavimentacao * CalcularPavimentacao(cell.Pavimentacao);
+                    WeightsConstants.PesoPavimentacao * CalcularPavimentacao(cell.Pavimentacao) +
+                    WeightsConstants.PesoClassificacaoViaria * CalcularClassificacaoViaria(cell.ClassificacaoViaria);
         }
 
         static double CalcularDeclividade(double declividade)
@@ -92,6 +93,16 @@ namespace WalkabilityMetrics
         static int CalcularPavimentacao(bool pavimentacao)
         {
             return pavimentacao ? 1 : 0;
+        }
+
+        static double CalcularClassificacaoViaria(string? classificacaoViaria)
+        {
+            if (classificacaoViaria == "LIGACAO REGIONAL") return 0;
+            if (classificacaoViaria == "ARTERIAL") return 0.1;
+            if (classificacaoViaria == "COLETORA") return 0.5;
+            if (classificacaoViaria == "LOCAL") return 0.7;
+            if (classificacaoViaria == "MISTA") return 0.7;
+            return 1;
         }
     }
 }

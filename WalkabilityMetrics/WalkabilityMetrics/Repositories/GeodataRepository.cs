@@ -20,17 +20,15 @@ namespace WalkabilityMetrics.Repositories
 
             string selectQuery = @"
                     SELECT w.id,
-		                w.valid,
-		                w.regiao_estudo_id, 
 		                w.media_declividade, 
 		                w.praca_ou_parque, 
 		                w.unidades_iluminacao, 
 		                w.atividades_economicas,
 		                w.meio_fio,
 		                w.pavimentacao, 
+		                w.class_viaria, 
 		                w.caminhabilidade
-	                FROM walkable_grid w
-	                WHERE regiao_estudo_id IS NOT NULL";
+	                FROM walkable_grid w";
 
             using var command = new NpgsqlCommand(selectQuery, connection);
             using var reader = command.ExecuteReader();
@@ -41,15 +39,14 @@ namespace WalkabilityMetrics.Repositories
                 GridCell grid = new()
                 {
                     Id = reader.GetInt32(0),
-                    Valid = reader.GetInt32(1),
-                    RegiaoEstudoId = reader.GetInt32(2),
-                    MediaDeclividade = reader.GetDouble(3),
-                    PracaOuParque = reader.GetInt32(4) == 1,
-                    UnidadesIluminacao = reader.IsDBNull(5) ? null : (int?)reader.GetInt32(5),
-                    AtividadesEconomicas = reader.IsDBNull(6) ? null : (int?)reader.GetInt32(6),
-                    MeioFio = reader.GetInt32(7) == 1,
-                    Pavimentacao = reader.GetInt32(8) == 1,
-                    Caminhabilidade = reader.IsDBNull(7) ? null : (double?)reader.GetDouble(7),
+                    MediaDeclividade = reader.GetDouble(1),
+                    PracaOuParque = reader.GetInt32(2) == 1,
+                    UnidadesIluminacao = reader.IsDBNull(3) ? null : (int?)reader.GetInt32(3),
+                    AtividadesEconomicas = reader.IsDBNull(4) ? null : (int?)reader.GetInt32(4),
+                    MeioFio = reader.GetInt32(5) == 1,
+                    Pavimentacao = reader.GetInt32(6) == 1,
+                    ClassificacaoViaria = reader.IsDBNull(7) ? null : reader.GetString(7),
+                    Caminhabilidade = reader.IsDBNull(8) ? null : (double?)reader.GetDouble(8),
                 };
 
                 grids.Add(grid);
