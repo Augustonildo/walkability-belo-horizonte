@@ -96,37 +96,22 @@ SELECT w.id,
 --
 --
 
--- TODO: Decide the best solution regarding performance and presentation
 -- -- Após realizar as predições utilizando os algoritmos de aprendizado de máquina
 -- -- o resultado obtido será um arquivo .csv com as predições de caminhabilidade para cada célula
 -- -- para esse caso, criaremos uma tabela com as previsões e armazenaremos nela os valores encontrados.
 
--- -- Após realizar as predições utilizando os algoritmos de aprendizado de máquina
--- -- o resultado obtido será um arquivo .csv com as predições de caminhabilidade para cada célula
--- -- para esse caso, criaremos uma coluna "predicao" e armazenaremos nela os valores encontrados.
--- ALTER TABLE walkable_grid
--- ADD COLUMN predicao INTEGER;
-
--- CREATE INDEX walkable_grid_predicao
--- 	ON geodata.walkable_grid USING btree(predicao)
-
--- -- Após esse ponto, devem ser importados os arquivos em resultado.csv para a tabela walkable_grid
--- -- atualizando os valores da coluna predicao para as linhas que derem match em id
-
 -- Criação da tabela
 CREATE TABLE geodata.prediction_walkability (
     id serial PRIMARY KEY,
-    geom geometry(Geometry, 31983),
     previsao integer
 );
 
-CREATE INDEX sidx_prediction_walkability_geom ON geodata.prediction_walkability USING gist (geom)
+-- *realizar a importação para a tabela nova através do SGBD preferido* --
 
--- *realizar a importação através do SGBD preferido* --
-
-UPDATE prediction_walkability
-	SET geom = wg.geom
-	FROM walkable_grid wg
-	WHERE prediction_walkability.id = wg.id;
+UPDATE walkable_grid
+	SET predicao = pw.previsao
+	FROM prediction_walkability pw
+	WHERE walkable_grid.id = pw.id;
 
 -- Agora é só abrir esta tabela no QGIS e visualizar os dados obtidos!
+-- A tabela prediction_walkability já pode ser limpa.
