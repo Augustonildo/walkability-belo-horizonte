@@ -19,6 +19,25 @@ UPDATE walkable_grid w
 		GROUP BY w.id
 	) AS subquery
 	WHERE w.id = subquery.id;
+
+-- *EDIT:* declividade por curva de nível
+	-- Após análise de todo o mapa, a ausência de informações de declividade relacionadas a células que não fazem
+	-- parte de logradouros, como praças, parques e outros, foi sentida. Portanto, foi realizada uma adaptação para calcular
+	-- a declividade com base nas informações de curva de nível.
+	-- Após criar uma interpolação, calcular a declividade na interpolação e transformar isso para células, temos uma declividade
+	-- que não só cobre os espaços descartados previamente como também melhor identifica as diferenças de declividade dentro de um mesmo segmento.
+
+	UPDATE walkable_grid as w
+		SET declividade = dc.valor_declividade
+		FROM declividade_celulas as dc 
+		WHERE ST_Contains(dc.geom, ST_Centroid(w.geom))
+
+	-- Devido aos limites da abrangência dos dados de curva de nível, algumas células caminháveis não possuem um valor de declividade atrelado
+	-- Para estas, portanto, prevalesce os valores já obtidos de declividade do logradouro, que foram utilizadas anteriormente.
+	UPDATE walkable_grid as w
+		SET declividade = media_declividade
+		WHERE declividade is null
+	
 	
 -- Praça ou parque:
 -- Identifica se a célula toca em uma praça ou um parque (1) ou se não toca em nenhum (0).

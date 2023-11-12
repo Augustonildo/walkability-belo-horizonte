@@ -11,7 +11,7 @@
         public static readonly double PesoClassificacaoViaria = 0.1445;
         // A soma dos pesos acima deve sempre ser igual a 1.
 
-        public static readonly int[] DeclividadeMarcos = { 0, 5, 10, 20, 40 };
+        public static readonly int[] DeclividadeMarcos = { 1, 3, 5, 8, 12 };
         public static readonly double[] DeclividadePesos = { 1, 0.8, 0.6, 0.4, 0.2 };
 
     }
