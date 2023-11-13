@@ -20,7 +20,7 @@ namespace WalkabilityMetrics.Repositories
 
             string selectQuery = @"
                     SELECT w.id,
-		                w.media_declividade, 
+		                w.declividade, 
 		                w.praca_ou_parque, 
 		                w.unidades_iluminacao, 
 		                w.atividades_economicas,
@@ -39,7 +39,7 @@ namespace WalkabilityMetrics.Repositories
                 GridCell grid = new()
                 {
                     Id = reader.GetInt32(0),
-                    MediaDeclividade = reader.GetDouble(1),
+                    Declividade = reader.GetDouble(1),
                     PracaOuParque = reader.GetInt32(2) == 1,
                     UnidadesIluminacao = reader.IsDBNull(3) ? null : (int?)reader.GetInt32(3),
                     AtividadesEconomicas = reader.IsDBNull(4) ? null : (int?)reader.GetInt32(4),

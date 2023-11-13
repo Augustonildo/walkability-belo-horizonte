@@ -39,7 +39,7 @@ namespace WalkabilityMetrics
         static double WeightBalanceWalkability(GridCell cell)
         {
             return
-                    WeightsConstants.PesoDeclividade * CalcularDeclividade(cell.MediaDeclividade) +
+                    WeightsConstants.PesoDeclividade * CalcularDeclividade(cell.Declividade) +
                     WeightsConstants.PesoPracaOuParque * CalcularPracaOuParque(cell.PracaOuParque) +
                     WeightsConstants.PesoIluminacao * CalcularIluminacao(cell.UnidadesIluminacao) +
                     WeightsConstants.PesoAtividadesEconomicas * CalcularAtividadesEconomicas(cell.AtividadesEconomicas) +
