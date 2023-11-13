@@ -40,10 +40,13 @@ Para visualizar no mapa as conclusões dos cálculos da métrica de caminhabilid
 
 Para fazer isso, siga os passos:
 - Selecione a tabela 'walkable_grid' como um layer
-- Filtre os resultados do layer para exibir somente as células em que "'regiao_estudo_id' IS NOT NULL"
-- Vá em Estilos -> Editar símbolo -> Preenchimento Simples. Ao lado de 'Cor do Preenchimento', clique em Editar e preencha o código a seguir:
-    - ```
-        color_rgb(255 * (1 - "caminhabilidade"), 255 * "caminhabilidade", 0)
+
+- Para visualizar os dados de caminhabilidade do regressor linear:
+  - Propriedades -> Simbologia -> Selecione "Graduated" no dropdown superior -> Valor: "caminhabilidade" -> Escolha uma faixa de cores (recomendo RdYiGn) -> Classificar
+  
+- Para visualizar os dados da classificação por machine learning:
+  - Propriedades -> Simbologia -> Selecione "Categorized" no dropdown superior -> Valor: "predicao" -> Escolha uma faixa de cores (recomendo RdYiGn) -> Classificar
+
 - Agora, as células com melhores índices de caminhabilidade devem estar mais verdes, enquanto as piores estão mais avermelhadas.
   
-Outra sugestão relevante é remover os traços ao redor das células, para permitir a visualização dos dados mesmo com um "zoom-out" grande. Com a borda colorida das células, ao remover o zoom as células se tornam somente uma grande mancha preta.
+Outra sugestão é remover os traços ao redor das células, para permitir a visualização dos dados mesmo com um "zoom-out" grande. Com a borda colorida das células, ao remover o zoom as células se tornam somente uma grande mancha preta.
