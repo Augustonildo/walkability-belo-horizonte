@@ -47,6 +47,9 @@ Para fazer isso, siga os passos:
 - Para visualizar os dados da classificação por machine learning:
   - Propriedades -> Simbologia -> Selecione "Categorized" no dropdown superior -> Valor: "predicao" -> Escolha uma faixa de cores (recomendo RdYiGn) -> Classificar
 
+- Para uma visualização com maior zoom-out, é aconselhável remover as bordas das células. Para isso, vá em: 
+  - Símbolo -> Preenchimento Simples -> Stroke Style -> No Style.
+
 - Agora, as células com melhores índices de caminhabilidade devem estar mais verdes, enquanto as piores estão mais avermelhadas.
   
 Outra sugestão é remover os traços ao redor das células, para permitir a visualização dos dados mesmo com um "zoom-out" grande. Com a borda colorida das células, ao remover o zoom as células se tornam somente uma grande mancha preta.
