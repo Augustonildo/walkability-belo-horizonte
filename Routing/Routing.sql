@@ -25,6 +25,11 @@ JOIN walkable_grid_vertices a_vertice
 JOIN walkable_grid_vertices b_vertice
 	on b_vertice.id = b.id
 
+ALTER TABLE walkable_grid_edges
+ADD COLUMN id serial;
+
+CREATE UNIQUE INDEX walkable_grid_edges_pkey ON geodata.walkable_grid_edges USING btree (id)
+
 CREATE INDEX sidx_walkable_grid_edges_geom ON geodata.walkable_grid_edges USING gist (geom)
 
 CREATE INDEX walkable_grid_edges_source ON geodata.walkable_grid_edges USING btree (source)
@@ -40,11 +45,6 @@ ALTER TABLE walkable_grid_edges
 ADD COLUMN IF NOT EXISTS cost double precision,
 ADD COLUMN IF NOT EXISTS reverse_cost double precision;
 
--- Estas colunas foram criadas especificamente para facilitar o cálculo de custo e custo_reverso
--- Para economizar espaços, elas podem ser removidas após o UPDATE associado.
-ALTER TABLE walkable_grid_edges
-ADD COLUMN IF NOT EXISTS caminhabilidade_source numeric,
-ADD COLUMN IF NOT EXISTS caminhabilidade_target numeric;
 
 UPDATE walkable_grid_edges
 SET
@@ -55,17 +55,25 @@ FROM walkable_grid_vertices a,
 WHERE a.id = source
 	AND b.id = target
 
--- TODO: tornar esse cálculo ainda mais rápido, está tomando mais de uma hora.
 UPDATE walkable_grid_edges
 SET
-    cost = ST_Length(geom) * (1 - (caminhabilidade_target)),
-    reverse_cost = ST_Length(geom) * (1 - (caminhabilidade_source));
+    cost = ST_Length(geom) * (1 - (
+        SELECT caminhabilidade
+        FROM walkable_grid_vertices
+        WHERE walkable_grid_vertices.id = walkable_grid_edges.target
+    )),
+    reverse_cost = ST_Length(geom) * (1 - (
+        SELECT caminhabilidade
+        FROM walkable_grid_vertices
+        WHERE walkable_grid_vertices.id = walkable_grid_edges.source
+    ));
 
--- TODO:
-SELECT pgr_createTopology('walkable_grid_edges', 0.00001, 'geom', 'source', 'target');
 
--- TODO:
-SELECT pgr_analyzegraph('walkable_grid_edges', 0.00001, 'geom', 'id', 'source', 'target');
-
--- TODO:
--- * dijkstra *
+-- Exemplo de criação de rota
+create table path_liberdade as (
+	select id, geom, caminhabilidade from walkable_grid where id in (
+		select node from pgr_bddijkstra('select id, source, target, cost, reverse_cost from walkable_grid_edges',
+										16324816, -- ID da célula de início
+										16249782) -- ID da célula de chegada
+	)
+)
