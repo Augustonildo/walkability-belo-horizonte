@@ -69,11 +69,29 @@ SET
     ));
 
 
--- Exemplo de criação de rota
-create table path_liberdade as (
-	select id, geom, caminhabilidade from walkable_grid where id in (
-		select node from pgr_bddijkstra('select id, source, target, cost, reverse_cost from walkable_grid_edges',
-										16324816, -- ID da célula de início
-										16249782) -- ID da célula de chegada
+-- Exemplos de criação de rota
+
+
+-- Rota que liga a estação UFMG do MOVE e a orla da Pampulha,
+-- especificamente Chopp da Fábrica
+create table path_estacao_orla_edges as (
+	select id, geom from walkable_grid_edges where id in (
+		select edge from pgr_bddijkstra('select id, source, target, cost, reverse_cost from walkable_grid_edges',
+										13866633, -- ID da célula de início
+										11478735) -- ID da célula de chegada
 	)
 )
+
+
+-- Rota que leva da praça Milton Campos, encontro entre Afonso Pena e Contorno,
+-- para a portaria do parque das Mangabeiras.ß
+create table path_milton_mangabeiras_edges as (
+	select id, geom from walkable_grid_edges where id in (
+		select edge from pgr_bddijkstra('select id, source, target, cost, reverse_cost from walkable_grid_edges',
+										17968972, -- ID da célula de início
+										20725961) -- ID da célula de chegada
+	)
+)
+
+-- Sugestões:
+-- Ao exibir a rota no QGIS, aumentar a grossura da linha do trajeto e selecionar uma cor contrastante (azul).
